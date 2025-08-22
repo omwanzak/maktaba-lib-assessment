@@ -5,7 +5,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Mock Data
 let users = [
-  { id: 1, name: "Pamela Abaki", email: "reader@maktaba.com", role: "reader", borrowingLimit: 3, currentBorrowed: 0 },
+  { id: 1, name: "Samantha Wayne", email: "reader@maktaba.com", role: "reader", borrowingLimit: 3, currentBorrowed: 0 },
   { id: 2, name: "Sandra Nyambura", email: "librarian@maktaba.com", role: "librarian" },
   { id: 3, name: "Maureen Chepkorir", email: "admin@maktaba.com", role: "admin" }
 ];
