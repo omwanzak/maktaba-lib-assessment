@@ -6,7 +6,7 @@ async function main() {
   // Seed Users
   await prisma.user.createMany({
     data: [
-      { name: "Pamela Abaki", email: "reader@maktaba.com", role: "reader", password: "reader123", borrowingLimit: 3, currentBorrowed: 0 },
+  { name: "Samantha Wayne", email: "reader@maktaba.com", role: "reader", password: "reader123", borrowingLimit: 3, currentBorrowed: 0 },
       { name: "Sandra Nyambura", email: "librarian@maktaba.com", role: "librarian", password: "librarian123" },
       { name: "Maureen Chepkorir", email: "admin@maktaba.com", role: "admin", password: "admin123" }
     ]
