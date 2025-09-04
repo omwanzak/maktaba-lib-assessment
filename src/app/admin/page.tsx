@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, useAuthGuard } from "../../lib/AuthContext";
 import { useRouter } from "next/navigation";
-import Navbar from "../lib/Navbar";
+import Navbar from "../../components/shared/Navbar";
 import Footer from "../lib/Footer";
 import { ArrowUp, ArrowDown, PlusCircle, Trash2 } from 'lucide-react';
 
@@ -145,7 +145,7 @@ export default function AdminDashboard() {
     <div
       className="min-h-screen bg-gray-200 flex flex-col"
     >
-      <Navbar />
+  <Navbar />
       <main className="flex-1 p-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">

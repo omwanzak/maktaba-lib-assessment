@@ -25,7 +25,7 @@ type Request = {
 };
 import { useAuth, useAuthGuard } from "../../lib/AuthContext";
 import { useRouter } from "next/navigation";
-import Navbar from "../lib/Navbar";
+import Navbar from "../../components/shared/Navbar";
 import Footer from "../lib/Footer";
 import SideNavbar from "../lib/SideNavbar";
 

@@ -3,49 +3,56 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const categoryIdParam = searchParams.get('categoryId');
-    const searchTerm = searchParams.get('searchTerm');
+    const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1', 10);
     const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
+    const categoryIdParam = searchParams.get('categoryId');
+    const searchTerm = searchParams.get('searchTerm') || '';
+    const categoryId = categoryIdParam ? parseInt(categoryIdParam, 10) : null;
 
     const where: any = {};
 
-    if (categoryIdParam) {
+    if (categoryId && !isNaN(categoryId)) {
       where.categories = {
         some: {
-          categoryId: parseInt(categoryIdParam, 10),
-        },
+          categoryId: categoryId
+        }
       };
     }
 
     if (searchTerm) {
       where.OR = [
-        { title: { contains: searchTerm, mode: 'insensitive' } },
-        { author: { contains: searchTerm, mode: 'insensitive' } },
+        { title: { contains: searchTerm } },
+        { author: { contains: searchTerm } }
       ];
     }
 
-    console.log('Book query where:', JSON.stringify(where));
-    const totalBooks = await prisma.book.count({ where });
-    const books = await prisma.book.findMany({
-      where,
-      include: {
-        categories: {
-          include: {
-            category: true,
-          },
+    const [totalBooks, books] = await Promise.all([
+      prisma.book.count({ where }),
+      prisma.book.findMany({
+        where,
+        include: {
+          categories: {
+            include: {
+              category: true
+            }
+          }
         },
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      })
+    ]);
 
-    return NextResponse.json({ books, totalBooks, page, pageSize });
+    return NextResponse.json({
+      books,
+      totalBooks,
+      page,
+      pageSize
+    });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    console.error('Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

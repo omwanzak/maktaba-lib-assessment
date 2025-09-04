@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, useAuthGuard } from "../../lib/AuthContext";
 import { useRouter } from "next/navigation";
-import Navbar from "../lib/Navbar";
+import Navbar from "../../components/shared/Navbar";
 import Footer from "../lib/Footer";
 
 // Types
@@ -97,27 +97,17 @@ export default function LibrarianDashboard() {
   };
 
   // Get all currently borrowed books
-  const borrowedBooks = books.filter(b => b.totalQuantity > b.availableQuantity);
+  const borrowedBooks = (books ?? []).filter(b => b.totalQuantity > b.availableQuantity);
 
   return (
     <div
       className="min-h-screen bg-gray-200 flex flex-col"
     >
-      <Navbar />
+      <Navbar onSearch={query => setSearchTerm(query)} />
       <main className="flex-1 p-4">
         <div className="max-w-5xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Librarian</h1>
-            <div className="relative flex items-center"> {/* Search input */}
-              <input
-                type="text"
-                className="px-3 py-1 rounded border text-black bg-white focus:outline-none"
-                placeholder="Search books..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{ minWidth: 180 }}
-              />
-            </div>
           </div>
           <h2 className="text-lg font-semibold mb-2">Pending Requests</h2>
           {loading ? (
