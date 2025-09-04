@@ -98,8 +98,8 @@ export default function LibrarianDashboard() {
       <main className="flex-1 p-4">
         <div className="max-w-5xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Librarian Dashboard</h1>
-            <button onClick={logout} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Logout</button>
+            <h1 className="text-2xl font-bold">Librarian</h1>
+            {/* <button onClick={logout} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Logout</button> */}
           </div>
           <h2 className="text-lg font-semibold mb-2">Pending Requests</h2>
           {loading ? (
