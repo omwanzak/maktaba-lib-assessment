@@ -4,7 +4,18 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-8 animate-fade-in">
+    <main
+      className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-8 animate-fade-in"
+      style={{
+        backgroundImage: 'url(/cozy-reading-knitting.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        minHeight: '100vh',
+        width: '100%',
+      }}
+    >
       <div className="max-w-2xl w-full flex flex-col items-center gap-8">
         <Image
           src="/home-photo.svg"

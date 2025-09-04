@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const { user, login, loading, error } = useAuth();
+  const [showRegister, setShowRegister] = useState(false);
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regName, setRegName] = useState("");
+  const [regError, setRegError] = useState<string | null>(null);
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,50 +33,127 @@ export default function LoginPage() {
     await login(email, password);
   };
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError(null);
+    if (!regEmail || !regPassword || !regName) {
+      setRegError("All fields are required");
+      return;
+    }
+    // Replace with your registration logic
+    // await register(regEmail, regPassword, regName);
+    setRegError("Registration is not implemented in demo.");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded shadow">
-        <h1 className="text-2xl font-bold mb-6 text-center">Maktaba Login</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              autoComplete="username"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
-          </div>
-          {(formError || error) && (
-            <div className="text-red-500 text-sm">{formError || error}</div>
-          )}
+    <div
+      className="min-h-screen flex items-center justify-center bg-black"
+      style={{
+        backgroundImage: 'url(/tranquil-bibliophytes-haven.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        minHeight: '100vh',
+        width: '100%',
+        filter: 'grayscale(1)',
+      }}
+    >
+      <div className="w-full max-w-md p-8 bg-white bg-opacity-90 rounded shadow">
+        <h1 className="text-2xl font-bold mb-6 text-center text-black">Maktaba {showRegister ? "Register" : "Login"}</h1>
+        <div className="flex justify-center mb-4 gap-4">
           <button
-            type="submit"
-            className="w-full py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition"
-            disabled={loading}
+            className={`px-4 py-2 rounded font-semibold border ${!showRegister ? "bg-black text-white" : "bg-white text-black"}`}
+            onClick={() => setShowRegister(false)}
           >
-            {loading ? "Logging in..." : "Login"}
+            Sign In
           </button>
-        </form>
-        <div className="mt-6 text-xs text-gray-500">
-          <div><strong>Reader:</strong> reader@maktaba.com / reader123</div>
-          <div><strong>Librarian:</strong> librarian@maktaba.com / librarian123</div>
-          <div><strong>Admin:</strong> admin@maktaba.com / admin123</div>
+          <button
+            className={`px-4 py-2 rounded font-semibold border ${showRegister ? "bg-black text-white" : "bg-white text-black"}`}
+            onClick={() => setShowRegister(true)}
+          >
+            Register
+          </button>
         </div>
+        {!showRegister ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-black">Email</label>
+              <input
+                type="email"
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-black bg-white text-black"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-black">Password</label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-black bg-white text-black"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {formError && <div className="text-red-500 text-sm">{formError}</div>}
+            <button
+              type="submit"
+              className="w-full py-2 px-4 bg-black text-white rounded font-semibold hover:bg-white hover:text-black border border-black transition-colors duration-300"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-black">Name</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-black bg-white text-black"
+                value={regName}
+                onChange={e => setRegName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-black">Email</label>
+              <input
+                type="email"
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-black bg-white text-black"
+                value={regEmail}
+                onChange={e => setRegEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-black">Password</label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-black bg-white text-black"
+                value={regPassword}
+                onChange={e => setRegPassword(e.target.value)}
+                required
+              />
+            </div>
+            {regError && <div className="text-red-500 text-sm">{regError}</div>}
+            <button
+              type="submit"
+              className="w-full py-2 px-4 bg-black text-white rounded font-semibold hover:bg-white hover:text-black border border-black transition-colors duration-300"
+            >
+              Register
+            </button>
+          </form>
+        )}
+        {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
       </div>
     </div>
   );
 }
+
+
+//Reader: reader@maktaba.com / reader123
+//Librarian: librarian@maktaba.com / librarian123
+//Admin: admin@maktaba.com / admin123
