@@ -1,0 +1,5 @@
+/* Black and white themed photo for home page. Replace with your own image if desired. */
+<svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="200" rx="24" fill="#000"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#fff" font-size="32" font-family="sans-serif">Maktaba Library</text>
+</svg>
