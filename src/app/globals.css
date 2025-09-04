@@ -34,6 +34,35 @@
   to { transform: translateY(-8px); }
 }
 
+/* New animations for page.tsx */
+.animate-fade-in-scale {
+  animation: fadeInScale 1.5s ease-out forwards;
+}
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fade-in-word {
+  animation: fadeInWord 0.5s ease-out forwards;
+}
+@keyframes fadeInWord {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 :root {
   --radius: 0.625rem;
@@ -103,4 +132,3 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
-

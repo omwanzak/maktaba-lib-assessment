@@ -1,12 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 
+type Category = {
+  id: number;
+  name: string;
+};
+
 type Book = {
   id: number;
   title: string;
   author: string;
   totalQuantity: number;
   availableQuantity: number;
+  categories: { category: Category }[];
 };
 
 type Request = {
@@ -18,23 +24,27 @@ type Request = {
   approvedBy: number | null;
 };
 import { useAuth, useAuthGuard } from "../../lib/AuthContext";
-import { mockApi } from "../../lib/utils/mockApi";
 import { useRouter } from "next/navigation";
 import Navbar from "../lib/Navbar";
 import Footer from "../lib/Footer";
 import SideNavbar from "../lib/SideNavbar";
-  // Removed duplicate import of useState
-// Removed duplicate import of useState
 
 export default function ReaderDashboard() {
   const [books, setBooks] = useState<Book[]>([]);
   const [requests, setRequests] = useState<Request[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loadingBooks, setLoadingBooks] = useState(true);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [requesting, setRequesting] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10; // 10 books per page
+  const [searchTerm, setSearchTerm] = useState(""); 
 
   const handleLogout = () => {
     logout();
@@ -45,29 +55,76 @@ export default function ReaderDashboard() {
   useEffect(() => {
     async function fetchBooks() {
       setLoadingBooks(true);
-      const data = await mockApi.getBooks();
-      setBooks(data);
-      setLoadingBooks(false);
+      const token = localStorage.getItem('token');
+      if (!user || !token) { // Check if user and token are available
+        setLoadingBooks(false);
+        return;
+      }
+      let url = `/api/reader/books?page=${currentPage}&pageSize=${pageSize}`;
+      if (selectedCategory) {
+        url += `&categoryId=${selectedCategory}`;
+      }
+      if (searchTerm) {
+        url += `&searchTerm=${searchTerm}`;
+      }
+      try {
+        console.log("Fetching books from URL:", url); // Log the URL
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        setBooks(data.books);
+        setTotalPages(Math.ceil(data.totalBooks / pageSize));
+      } catch (error) {
+        console.error("Failed to fetch books:", error);
+        // Optionally set an error message to display in the UI
+      } finally {
+        setLoadingBooks(false);
+      }
     }
     fetchBooks();
-  }, []);
+  }, [selectedCategory, currentPage, pageSize, user, searchTerm]);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const token = localStorage.getItem('token');
+      if (!user || !token) { // Check if user and token are available
+        return;
+      }
+      try {
+        const data = await fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json());
+        setCategories(data);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    }
+    fetchCategories();
+  }, [user]);
 
   useEffect(() => {
     async function fetchRequests() {
       setLoadingRequests(true);
       if (user) {
-        const data = await mockApi.getUserRequests(user.id);
-        setRequests(data);
+        const token = localStorage.getItem('token');
+        if (!token) { // Check if token is available
+          setLoadingRequests(false);
+          return;
+        }
+        try {
+          const data = await fetch(`/api/reader/user-requests/${user.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json());
+          setRequests(data);
+        } catch (error) {
+          console.error("Failed to fetch requests:", error);
+        } finally {
+          setLoadingRequests(false);
+        }
       }
-      setLoadingRequests(false);
     }
     fetchRequests();
   }, [user, message]);
 
 
-  // Search state
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   // Helper variables and functions
   const borrowingLimit = 3;
   const borrowedCount = user?.currentBorrowed || 0;
@@ -80,8 +137,13 @@ export default function ReaderDashboard() {
     }
     setRequesting(true);
     setMessage(null);
+    const token = localStorage.getItem('token');
     try {
-      await mockApi.requestBook(user.id, bookId);
+      await fetch('/api/reader/request-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: user.id, bookId }),
+      });
       setMessage("Request submitted successfully!");
     } catch (err: any) {
       setMessage(err.message);
@@ -101,28 +163,15 @@ export default function ReaderDashboard() {
           <span className="font-bold text-xl">Maktaba</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative flex items-center">
-            <button
-              className="p-2 rounded-full hover:bg-gray-700 focus:outline-none"
-              onClick={() => setShowSearch(s => !s)}
-              aria-label="Search"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </button>
-            {showSearch && (
-              <input
-                type="text"
-                className="ml-2 px-3 py-1 rounded border text-black bg-white focus:outline-none"
-                placeholder="Search anything..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                autoFocus
-                style={{ minWidth: 180 }}
-              />
-            )}
+          <div className="relative flex items-center"> {/* This div now contains both search and other buttons */}
+            <input
+              type="text"
+              className="px-3 py-1 rounded border text-black bg-white focus:outline-none"
+              placeholder="Search anything..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{ minWidth: 180 }}
+            />
           </div>
           <button
             className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200 transition"
@@ -132,27 +181,26 @@ export default function ReaderDashboard() {
           </button>
           <button onClick={handleLogout} className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200 transition">Logout</button>
         </div>
-  // Search state
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  
       </nav>
       {/* Account Modal */}
+
       {showAccount && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
             <button className="absolute top-2 right-2 text-black" onClick={() => setShowAccount(false)}>&times;</button>
             <h2 className="text-xl font-bold mb-4">Account Details</h2>
-            <div className="mb-2"><span className="font-semibold">Name:</span> {user?.name}</div>
-            <div className="mb-2"><span className="font-semibold">Email:</span> {user?.email}</div>
-            <div className="mb-2"><span className="font-semibold">Role:</span> {user?.role}</div>
-            {/* Subscription field commented out until User type is updated */}
+            <div className="mb-2"><span className="font-semibold">Name:</span> {user?.name || "N/A"}</div>
+            <div className="mb-2"><span className="font-semibold">Email:</span> {user?.email || "N/A"}</div>
+            <div className="mb-2"><span className="font-semibold">Role:</span> {user?.role || "N/A"}</div>
+            <div className="mb-2"><span className="font-semibold">Books Borrowed:</span> {user?.currentBorrowed !== undefined ? user.currentBorrowed : "N/A"}</div>
             <button onClick={handleLogout} className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition">Logout</button>
           </div>
         </div>
       )}
   <main className="flex-1 flex flex-col md:flex-row gap-6 p-4 relative z-10">
   <aside className="w-full md:w-64 bg-transparent rounded-xl shadow-lg p-6 mb-6 md:mb-0 md:mr-6">
-          <SideNavbar />
+          <SideNavbar categories={categories} onSelectCategory={(catId) => { setSelectedCategory(catId); setCurrentPage(1); }} />
         </aside>
         <section className="flex-1">
           <div className="bg-transparent rounded-xl shadow-lg p-6 mb-6">
@@ -180,6 +228,7 @@ export default function ReaderDashboard() {
                     <tr className="bg-blue-100">
                       <th className="p-3 text-left font-semibold text-gray-700">Title</th>
                       <th className="p-3 text-left font-semibold text-gray-700">Author</th>
+                      <th className="p-3 text-left font-semibold text-gray-700">Categories</th>
                       <th className="p-3 text-left font-semibold text-gray-700">Available</th>
                       <th className="p-3 text-left font-semibold text-gray-700">Action</th>
                     </tr>
@@ -199,6 +248,7 @@ export default function ReaderDashboard() {
                         <tr key={book.id} className="border-t hover:bg-blue-50 transition">
                           <td className="p-3">{book.title}</td>
                           <td className="p-3">{book.author}</td>
+                          <td className="p-3">{book.categories.map(c => c.category.name).join(', ')}</td>
                           <td className="p-3">{book.availableQuantity}</td>
                           <td className="p-3">
                             <button
@@ -224,8 +274,33 @@ export default function ReaderDashboard() {
                 </table>
               </div>
             )}
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-l-lg disabled:opacity-50"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 border-t border-b border-gray-300 ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-white text-gray-800'}`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-r-lg disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
             {message && (
-              <div className={`mb-4 p-2 rounded-lg font-semibold ${message.includes("success") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+              <div className={`mt-4 mb-4 p-2 rounded-lg font-semibold ${message.includes("success") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                 {message}
               </div>
             )}

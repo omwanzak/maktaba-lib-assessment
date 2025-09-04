@@ -1,6 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { mockApi } from "./utils/mockApi";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 export type User = {
   id: number;
@@ -23,19 +22,52 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            // If token is invalid or expired, clear it and set user to null
+            localStorage.removeItem('token');
+            setUser(null);
+            throw new Error('Session expired or invalid token');
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setUser(data); // Directly set data as user
+        })
+        .catch((err) => {
+          console.error("Failed to fetch user on refresh:", err);
+          setError(err.message || "Failed to restore session");
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
     try {
-      const loggedInUser = await mockApi.login(email, password);
-      // Ensure role is typed correctly
-      setUser({
-        ...loggedInUser,
-        role: loggedInUser.role as "reader" | "librarian" | "admin"
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+      setUser(data.user);
+      localStorage.setItem('token', data.token);
     } catch (err: any) {
       setError(err.message || "Login failed");
       setUser(null);
@@ -47,6 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     setError(null);
+    localStorage.removeItem('token');
   };
 
   return (

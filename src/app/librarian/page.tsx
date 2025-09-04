@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAuth, useAuthGuard } from "../../lib/AuthContext";
-import { mockApi } from "../../lib/utils/mockApi";
 import { useRouter } from "next/navigation";
 import Navbar from "../lib/Navbar";
 import Footer from "../lib/Footer";
@@ -35,6 +34,7 @@ export default function LibrarianDashboard() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState(""); // Added searchTerm state
 
   useEffect(() => {
     if (!isAllowed) router.replace("/login");
@@ -42,24 +42,34 @@ export default function LibrarianDashboard() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [reqs, bks] = await Promise.all([
-      mockApi.getPendingRequests(),
-      mockApi.getBooks()
+    const token = localStorage.getItem('token');
+    if (!user || !token) { // Check if user and token are available
+      setLoading(false);
+      return;
+    }
+    const [reqs, bksResponse] = await Promise.all([
+      fetch('/api/librarian/pending-requests', { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json()),
+      fetch(`/api/reader/books?searchTerm=${searchTerm}`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json()) // Added searchTerm to API call
     ]);
     setPendingRequests(reqs);
-    setBooks(bks);
+    setBooks(bksResponse.books);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
-  }, [message]);
+  }, [message, user, searchTerm]); // Added searchTerm to dependency array
 
   const handleApprove = async (requestId: number) => {
     setActionLoading(true);
     setMessage(null);
+    const token = localStorage.getItem('token');
     try {
-      await mockApi.approveRequest(requestId, user!.id);
+      await fetch('/api/librarian/approve-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ requestId, librarianId: user!.id }),
+      });
       setMessage("Request approved!");
     } catch (err: any) {
       setMessage(err.message);
@@ -71,8 +81,13 @@ export default function LibrarianDashboard() {
   const handleReject = async (requestId: number) => {
     setActionLoading(true);
     setMessage(null);
+    const token = localStorage.getItem('token');
     try {
-      await mockApi.rejectRequest(requestId);
+      await fetch('/api/librarian/reject-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ requestId }),
+      });
       setMessage("Request rejected.");
     } catch (err: any) {
       setMessage(err.message);
@@ -86,26 +101,29 @@ export default function LibrarianDashboard() {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 flex flex-col"
-      style={{
-        backgroundImage: 'url(/books-bg.svg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
+      className="min-h-screen bg-gray-200 flex flex-col"
     >
       <Navbar />
       <main className="flex-1 p-4">
         <div className="max-w-5xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Librarian</h1>
-            {/* <button onClick={logout} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Logout</button> */}
+            <div className="relative flex items-center"> {/* Search input */}
+              <input
+                type="text"
+                className="px-3 py-1 rounded border text-black bg-white focus:outline-none"
+                placeholder="Search books..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{ minWidth: 180 }}
+              />
+            </div>
           </div>
           <h2 className="text-lg font-semibold mb-2">Pending Requests</h2>
           {loading ? (
             <div className="text-gray-500">Loading requests...</div>
           ) : pendingRequests.length === 0 ? (
-            <div className="text-gray-500">No pending requests.</div>
+            <div className="text-500">No pending requests.</div>
           ) : (
             <table className="w-full mb-6 border">
               <thead>
