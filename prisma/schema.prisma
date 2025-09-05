@@ -26,13 +26,30 @@ model User {
 }
 
 model Book {
-  id               Int     @id @default(autoincrement())
-  title            String
-  author           String
-  totalQuantity    Int
+  id                Int     @id @default(autoincrement())
+  title             String
+  author            String
+  totalQuantity     Int
   availableQuantity Int
-  requests         Request[]
-  bookLogs         BookLog[]
+  damagedQuantity   Int     @default(0) // New field for damaged books
+  requests          Request[]
+  bookLogs          BookLog[]
+  categories        CategoriesOnBooks[]
+}
+
+model Category {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  books  CategoriesOnBooks[]
+}
+
+model CategoriesOnBooks {
+  book       Book     @relation(fields: [bookId], references: [id])
+  bookId     Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  @@id([bookId, categoryId])
 }
 
 model Request {

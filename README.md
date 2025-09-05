@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Maktaba Library Management System
+
+A modern library management system built with Next.js, TypeScript, and Prisma. This system helps libraries manage their book inventory, handle user requests, and streamline the book borrowing process.
+
+## Features
+
+### For Readers
+- Browse available books with pagination
+- Search books by title or author
+- Filter books by categories
+- Request books for borrowing
+- Track request status
+- View personal borrowing history
+- Maximum borrowing limit enforcement
+
+### For Librarians
+- Approve/reject book requests
+- Manage pending requests
+- Track book inventory
+
+### For Administrators
+- Manage book inventory
+- Add/edit book categories
+- View library statistics
+- Monitor book logs
+
+## Tech Stack
+
+- **Frontend**: Next.js 13+ with App Router
+- **Language**: TypeScript
+- **Database ORM**: Prisma
+- **Styling**: Tailwind CSS
+- **Authentication**: Custom JWT-based auth system
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 16.8 or later
+- npm or yarn
+- SQLite (default database)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/omwanzak/maktaba-lib-assessment.git
+   cd maktaba-lib-assessment
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Set up the database:
+   ```bash
+   npx prisma migrate dev
+   npx prisma db seed
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+src/
+  ├── app/                    # Next.js 13 app directory
+  │   ├── admin/             # Admin dashboard and features
+  │   ├── librarian/         # Librarian dashboard and features
+  │   ├── reader/            # Reader dashboard and features
+  │   └── api/               # API routes
+  ├── components/            # Reusable components
+  └── lib/                   # Utilities and shared code
+prisma/                      # Database schema and migrations
+public/                      # Static files
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Database Schema
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The application uses Prisma with SQLite and includes the following main models:
+- Users (readers, librarians, admins)
+- Books
+- Categories
+- Book Requests
+- Book Logs
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Contributing
 
-## Learn More
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-To learn more about Next.js, take a look at the following resources:
+## License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Acknowledgments
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Built as part of a library management system assessment
+- Uses modern web development practices and tools
